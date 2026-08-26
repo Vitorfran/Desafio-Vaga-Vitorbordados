@@ -1,0 +1,11 @@
+/* Estilos do detalhe do candidato e das entregas administrativas. */
+.modal-candidato { max-height: 90vh; overflow: auto; width: min(720px, 100%); }
+.detalhe-secao { border-top: 1px solid var(--line); padding-top: 16px; margin-top: 18px; }
+.detalhe-secao h3 { color: var(--navy); font-size: 15px; margin: 0 0 10px; }
+.detalhe-secao p { color: #718096; font-size: 11px; line-height: 1.6; margin: 6px 0; }
+.detalhe-secao a { color: var(--orange); font-size: 11px; }
+.entrega-detalhe { border: 1px solid var(--line); border-radius: 7px; padding: 10px; margin-top: 8px; }
+.entrega-detalhe strong, .entrega-detalhe small { display: block; }
+.entrega-detalhe strong { color: #44566e; font-size: 11px; }
+.entrega-detalhe small { color: #91a0b1; font-size: 10px; margin-top: 4px; }
+.entrega-detalhe .link-button { margin-top: 7px; }
