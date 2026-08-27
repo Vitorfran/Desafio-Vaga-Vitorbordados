@@ -92,6 +92,11 @@ ALTER TABLE public.challenges ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.submissions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.submission_files ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.challenge_files ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.candidate_statuses ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "candidato le seu status" ON public.candidate_statuses;
+CREATE POLICY "candidato le seu status" ON public.candidate_statuses
+  FOR SELECT TO authenticated USING (auth.uid() = candidate_id);
 
 DROP POLICY IF EXISTS "candidato le proprio perfil" ON public.candidate_profiles;
 CREATE POLICY "candidato le proprio perfil" ON public.candidate_profiles FOR SELECT TO authenticated USING (auth.uid() = user_id);
