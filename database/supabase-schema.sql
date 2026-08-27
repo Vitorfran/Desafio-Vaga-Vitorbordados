@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS public.candidate_profiles (
   wilcom_experience VARCHAR(80),
   wilcom_level VARCHAR(30),
   language VARCHAR(50),
+  avatar_storage_key TEXT,
   professional_description TEXT,
   portfolio_url TEXT,
   consent_at TIMESTAMPTZ,
@@ -125,6 +126,8 @@ ON CONFLICT (id) DO NOTHING;
 
 DROP POLICY IF EXISTS "candidato envia seus arquivos" ON storage.objects;
 CREATE POLICY "candidato envia seus arquivos" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'desafio-arquivos' AND (storage.foldername(name))[1] = auth.uid()::text);
+DROP POLICY IF EXISTS "candidato atualiza seus arquivos" ON storage.objects;
+CREATE POLICY "candidato atualiza seus arquivos" ON storage.objects FOR UPDATE TO authenticated USING (bucket_id = 'desafio-arquivos' AND (storage.foldername(name))[1] = auth.uid()::text) WITH CHECK (bucket_id = 'desafio-arquivos' AND (storage.foldername(name))[1] = auth.uid()::text);
 DROP POLICY IF EXISTS "candidato le seus arquivos storage" ON storage.objects;
 CREATE POLICY "candidato le seus arquivos storage" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'desafio-arquivos' AND (storage.foldername(name))[1] = auth.uid()::text);
 DROP POLICY IF EXISTS "candidato baixa referencias publicadas" ON storage.objects;

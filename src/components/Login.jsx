@@ -10,6 +10,7 @@ function Logo() {
 export default function Login({ onLogin, portalAdmin = false }) {
   const [modo, setModo] = useState('login')
   const [mensagem, setMensagem] = useState('')
+  const [tipoMensagem, setTipoMensagem] = useState('')
   const [email, setEmail] = useState('')
   const [senha, setSenha] = useState('')
   const [nomeCadastro, setNomeCadastro] = useState('')
@@ -29,11 +30,13 @@ export default function Login({ onLogin, portalAdmin = false }) {
   async function autenticarComSupabase(emailNormalizado, nomeDigitado) {
     setCarregando(true)
     setMensagem('')
+    setTipoMensagem('')
     try {
       if (modo === 'register') {
         const { error } = await supabase.auth.signUp({ email: emailNormalizado, password: senha, options: { data: { nome: nomeDigitado.trim(), role: 'CANDIDATE' } } })
         if (error) throw error
         setMensagem('Cadastro criado. Verifique seu e-mail para confirmar a conta.')
+        setTipoMensagem('sucesso')
         setModo('login')
         return
       }
@@ -41,6 +44,7 @@ export default function Login({ onLogin, portalAdmin = false }) {
         const { error } = await supabase.auth.resetPasswordForEmail(emailNormalizado)
         if (error) throw error
         setMensagem('Se o e-mail existir, enviaremos as instruções de recuperação.')
+        setTipoMensagem('sucesso')
         return
       }
       const { data, error } = await supabase.auth.signInWithPassword({ email: emailNormalizado, password: senha })
@@ -52,6 +56,7 @@ export default function Login({ onLogin, portalAdmin = false }) {
     } catch (error) {
       const mensagens = { 'Email not confirmed': 'Seu e-mail ainda não foi confirmado. Verifique a caixa de entrada e clique no link enviado pelo Supabase.', 'Invalid login credentials': 'E-mail ou senha inválidos.', 'Email rate limit exceeded': 'O limite de e-mails do Supabase foi atingido. Aguarde um pouco antes de tentar novamente.', 'over_email_send_rate_limit': 'O limite de e-mails do Supabase foi atingido. Aguarde um pouco antes de tentar novamente.' }
       setMensagem(mensagens[error.message] || error.message || 'Não foi possível concluir o acesso.')
+      setTipoMensagem('erro')
     } finally { setCarregando(false) }
   }
 
