@@ -13,7 +13,7 @@ export default function QuemSomos() {
     <section className="card quem-somos-hero">
       <div className="quem-somos-hero-texto">
         <span className="quem-somos-kicker">DE BLUMENAU, SC</span>
-        <h3>Atendendo bem para atender sempre.</h3>
+        <h3 style={{color: "white"}} >Atendendo bem para atender sempre.</h3>
         <p>A Vitor Bordados é uma empresa de Blumenau especializada em fornecer matrizes de bordado para negócios que precisam de qualidade, agilidade e atenção aos detalhes.</p>
         <p>Atendemos especialmente pequenas quantidades, ajudando marcas e empreendedores a produzirem com segurança, mesmo quando cada peça conta.</p>
       </div>
