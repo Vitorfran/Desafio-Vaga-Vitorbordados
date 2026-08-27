@@ -1,41 +1,75 @@
 # Portal de Desafio — Vitor Bordados
 
-Protótipo React do portal de seleção para programadores de bordado.
+Portal de processo seletivo para programadores de bordado da Vitor Bordados.
 
-## Banco de dados escolhido
+Repositório: https://github.com/Vitorfran/Desafio-Vaga-Vitorbordados
 
-Usaremos **PostgreSQL** na versão de produção. Ele é adequado para:
+## Quem somos
 
-- usuários candidatos e administradores;
-- perfis profissionais;
-- desafios e versões do briefing;
-- submissões com histórico de arquivos;
-- avaliações e auditoria;
-- filtros e relatórios administrativos.
+A Vitor Bordados é uma empresa de Blumenau, Santa Catarina, com foco no
+fornecimento de matrizes de bordado e no atendimento de pequenas quantidades.
+O portal aproxima a empresa de profissionais de bordado e organiza todo o
+processo de seleção em um só lugar.
 
-Para uma próxima etapa, a recomendação é usar PostgreSQL com **Prisma** ou
-**Drizzle ORM** e armazenamento de arquivos em S3, Cloudflare R2 ou Supabase
-Storage. O protótipo atual usa dados simulados no frontend e ainda não grava em
-banco.
+## Funcionalidades
 
-## Como executar
+- Cadastro e login de candidatos pelo Supabase Auth.
+- Controle de acesso por função: candidato e administrador.
+- Perfil profissional com experiência em Wilcom, nível, idioma, localização,
+  portfólio e descrição.
+- Publicação de desafios com briefing e arquivos de referência.
+- Envio de arquivos de resultado em formatos de bordado e imagem.
+- Painel administrativo com candidatos, entregas, arquivos e avaliações.
+- Alteração do status da candidatura para enviado, análise, aprovado ou
+  desclassificado.
+- Tela institucional “Quem somos”.
+
+## Stack
+
+- React + Vite
+- Supabase Auth, PostgreSQL e Storage
+- Lucide React
+- Vercel para hospedagem do frontend
+
+## Executar localmente
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
-Depois, abra o endereço informado pelo Vite no navegador.
+Crie um arquivo `.env` com as variáveis públicas do Supabase:
 
-## Prévia do protótipo
+```env
+VITE_SUPABASE_URL=https://seu-projeto.supabase.co
+VITE_SUPABASE_PUBLISHABLE_KEY=sua_chave_publica
+```
 
-O botão “Prévia do administrador”, no canto inferior direito, alterna entre a
-visão do candidato e o painel administrativo. O envio de arquivo é simulado no
-frontend para demonstrar o fluxo antes da integração com API e armazenamento.
+Nunca coloque a chave secreta do Supabase em uma variável `VITE_` ou no
+frontend.
 
-## Arquivos principais
+## Banco de dados
 
-- `SPEC.md` — especificação funcional e técnica do produto.
-- `src/main.jsx` — telas do portal conectadas à autenticação, ao banco e ao armazenamento.
-- `src/styles.css` — identidade visual, responsividade e comentários em português.
-- `public/logo.png` — logo fornecida para o portal.
+Execute `database/supabase-schema.sql` no SQL Editor do Supabase. Para bancos
+que já possuem as tabelas, execute também as migrações em
+`database/migrations/`.
+
+## Produção na Vercel
+
+Configure `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY` no ambiente
+**Production** da Vercel e faça um novo deploy após qualquer alteração.
+
+O arquivo `vercel.json` mantém as rotas da aplicação React funcionando,
+incluindo `/admin/login`.
+
+## Estrutura principal
+
+- `src/main.jsx` — entrada da aplicação e navegação do candidato.
+- `src/components/Login.jsx` — autenticação.
+- `src/components/Dashboard.jsx` — visão geral do candidato.
+- `src/components/Desafio.jsx` — briefing, referências e envio de arquivos.
+- `src/components/Admin.jsx` — painel administrativo.
+- `src/components/QuemSomos.jsx` — apresentação institucional.
+- `src/styles.css` — identidade visual e responsividade.
+- `database/` — schema e migrações do Supabase.
+- `public/logo.png` — logo da Vitor Bordados.

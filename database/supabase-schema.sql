@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS public.candidate_profiles (
   state VARCHAR(2),
   wilcom_experience VARCHAR(80),
   wilcom_level VARCHAR(30),
+  language VARCHAR(50),
   professional_description TEXT,
   portfolio_url TEXT,
   consent_at TIMESTAMPTZ,

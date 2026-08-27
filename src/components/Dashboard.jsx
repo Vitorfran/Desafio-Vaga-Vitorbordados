@@ -26,7 +26,7 @@ export default function Dashboard({ mudarTela }) {
   }, [])
 
   if (dados.carregando) return <section className="card estado-vazio" aria-busy="true"><Clock3 size={30} /><h2>Aguarde...</h2></section>
-  const perfilCompleto = Boolean(dados.perfil?.professional_description && dados.perfil?.wilcom_level && dados.perfil?.wilcom_experience)
+  const perfilCompleto = Boolean(dados.perfil?.professional_description && dados.perfil?.wilcom_level && dados.perfil?.wilcom_experience && dados.perfil?.language)
   const status = dados.status
   const resultadoFinal = status === 'APROVADO' || status === 'DESCLASSIFICADO'
   const nome = dados.nome.split(' ')[0]
