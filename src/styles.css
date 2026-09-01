@@ -46,3 +46,4 @@
 /* A troca para o painel administrativo depende exclusivamente da role autenticada. */
 .alternar-admin{display:none!important}
 .auth-mensagem{background:#fff0ee!important;color:#b94436!important;border:1px solid #f6d4cf}
+.auth-mensagem.sucesso{background:#edf8f3!important;color:#398461!important;border-color:#ccebdc}
