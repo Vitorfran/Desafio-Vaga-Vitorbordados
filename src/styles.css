@@ -37,6 +37,11 @@
 .quem-somos-proposito .eyebrow{margin-bottom:7px}
 @media(max-width:700px){.quem-somos-hero{grid-template-columns:1fr;padding:25px}.quem-somos-hero h3{font-size:25px}.quem-somos-valores{grid-template-columns:1fr}}
 .alternar-admin{display:none!important}
+
+.segunda-etapa-card{margin-top:16px;border-color:#e9ddd4;background:linear-gradient(135deg,#fff 0%,#fffaf5 100%)}
+.segunda-etapa-card h3{font-size:20px;color:var(--navy);margin:0 0 7px}
+.segunda-etapa-card .form-grid{margin-top:22px}
+.segunda-etapa-card .botao-principal{justify-self:start}
 .contas-demo{display:none!important}
 /* A troca para o painel administrativo depende exclusivamente da role autenticada. */
 .alternar-admin{display:none!important}

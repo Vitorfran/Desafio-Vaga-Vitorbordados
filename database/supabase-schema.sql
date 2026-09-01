@@ -72,6 +72,16 @@ CREATE TABLE IF NOT EXISTS public.candidate_statuses (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS public.candidate_second_stage_responses (
+  candidate_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  embroidery_experience TEXT,
+  availability TEXT,
+  average_production TEXT,
+  can_issue_invoice BOOLEAN,
+  completed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS public.email_events (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   candidate_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -93,10 +103,18 @@ ALTER TABLE public.submissions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.submission_files ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.challenge_files ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.candidate_statuses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.candidate_second_stage_responses ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "candidato le seu status" ON public.candidate_statuses;
 CREATE POLICY "candidato le seu status" ON public.candidate_statuses
   FOR SELECT TO authenticated USING (auth.uid() = candidate_id);
+
+DROP POLICY IF EXISTS "candidato le suas respostas da segunda etapa" ON public.candidate_second_stage_responses;
+CREATE POLICY "candidato le suas respostas da segunda etapa" ON public.candidate_second_stage_responses FOR SELECT TO authenticated USING (auth.uid() = candidate_id);
+DROP POLICY IF EXISTS "candidato cria suas respostas da segunda etapa" ON public.candidate_second_stage_responses;
+CREATE POLICY "candidato cria suas respostas da segunda etapa" ON public.candidate_second_stage_responses FOR INSERT TO authenticated WITH CHECK (auth.uid() = candidate_id);
+DROP POLICY IF EXISTS "candidato atualiza suas respostas da segunda etapa" ON public.candidate_second_stage_responses;
+CREATE POLICY "candidato atualiza suas respostas da segunda etapa" ON public.candidate_second_stage_responses FOR UPDATE TO authenticated USING (auth.uid() = candidate_id) WITH CHECK (auth.uid() = candidate_id);
 
 DROP POLICY IF EXISTS "candidato le proprio perfil" ON public.candidate_profiles;
 CREATE POLICY "candidato le proprio perfil" ON public.candidate_profiles FOR SELECT TO authenticated USING (auth.uid() = user_id);
