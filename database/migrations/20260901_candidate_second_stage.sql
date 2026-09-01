@@ -17,3 +17,5 @@ DROP POLICY IF EXISTS "candidato cria suas respostas da segunda etapa" ON public
 CREATE POLICY "candidato cria suas respostas da segunda etapa" ON public.candidate_second_stage_responses FOR INSERT TO authenticated WITH CHECK (auth.uid() = candidate_id);
 DROP POLICY IF EXISTS "candidato atualiza suas respostas da segunda etapa" ON public.candidate_second_stage_responses;
 CREATE POLICY "candidato atualiza suas respostas da segunda etapa" ON public.candidate_second_stage_responses FOR UPDATE TO authenticated USING (auth.uid() = candidate_id) WITH CHECK (auth.uid() = candidate_id);
+DROP POLICY IF EXISTS "admin le respostas da segunda etapa" ON public.candidate_second_stage_responses;
+CREATE POLICY "admin le respostas da segunda etapa" ON public.candidate_second_stage_responses FOR SELECT TO authenticated USING ((auth.jwt() -> 'app_metadata' ->> 'role') = 'ADMIN');

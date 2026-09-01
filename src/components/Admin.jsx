@@ -44,8 +44,17 @@ export default function Admin() {
 
   async function abrirDetalhe(id) {
     setMensagem('')
-    const { data, error } = await supabase.rpc('admin_get_candidate_detail', { p_candidate_id: id })
-    if (error) setMensagem(error.message); else { setSelecionado(id); setDetalhe(data) }
+    const [{ data, error }, respostas] = await Promise.all([
+      supabase.rpc('admin_get_candidate_detail', { p_candidate_id: id }),
+      supabase.from('candidate_second_stage_responses').select('*').eq('candidate_id', id).maybeSingle(),
+    ])
+    if (error) setMensagem(error.message); else {
+      const segundaEtapa = respostas.data || null
+      const perfil = data.perfil ? { ...data.perfil } : {}
+      if (segundaEtapa) perfil.professional_description = `${perfil.professional_description || ''} | RESPOSTAS DA SEGUNDA ETAPA — Experiência: ${segundaEtapa.embroidery_experience}; disponibilidade: ${segundaEtapa.availability}; produção média: ${segundaEtapa.average_production}; emite nota fiscal: ${segundaEtapa.can_issue_invoice ? 'Sim' : 'Não'}.`
+      setSelecionado(id)
+      setDetalhe({ ...data, perfil, segunda_etapa: segundaEtapa })
+    }
   }
 
   async function mudarStatus(status) {
