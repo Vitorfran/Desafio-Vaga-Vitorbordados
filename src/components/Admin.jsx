@@ -51,7 +51,7 @@ export default function Admin() {
     if (error) setMensagem(error.message); else {
       const segundaEtapa = respostas.data || null
       const perfil = data.perfil ? { ...data.perfil } : {}
-      if (segundaEtapa) perfil.professional_description = `${perfil.professional_description || ''} | RESPOSTAS DA SEGUNDA ETAPA — Experiência: ${segundaEtapa.embroidery_experience}; disponibilidade: ${segundaEtapa.availability}; produção média: ${segundaEtapa.average_production}; emite nota fiscal: ${segundaEtapa.can_issue_invoice ? 'Sim' : 'Não'}.`
+      if (segundaEtapa) perfil.professional_description = `${perfil.professional_description || ''}\n\nRESPOSTAS DA SEGUNDA ETAPA\nTempo de experiência: ${segundaEtapa.embroidery_experience}\nDisponibilidade: ${segundaEtapa.availability}\nProdução média: ${segundaEtapa.average_production}\nEmite nota fiscal: ${segundaEtapa.can_issue_invoice ? 'Sim' : 'Não'}`
       setSelecionado(id)
       setDetalhe({ ...data, perfil, segunda_etapa: segundaEtapa })
     }

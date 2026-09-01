@@ -13,3 +13,5 @@
 .admin-abas button{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;background:#f5f6f8;color:#718096;border:1px solid transparent;border-radius:7px;padding:9px 12px;font-size:11px;font-weight:700}
 .admin-abas button:hover,.admin-abas button.ativa{background:#eaf1fb;color:#426fa4;border-color:#d6e3f3}
 .admin-abas button span{background:rgba(255,255,255,.75);border-radius:10px;padding:2px 6px;font-size:9px}
+.detalhe-secao p{white-space:pre-line;line-height:1.7}
+.detalhe-secao p strong{color:#40526a}
