@@ -204,7 +204,9 @@ RETURNS TABLE (
   nivel TEXT,
   status TEXT,
   nota NUMERIC,
-  atualizado_em TIMESTAMPTZ
+  atualizado_em TIMESTAMPTZ,
+  desafio_titulo TEXT,
+  tem_entrega BOOLEAN
 )
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -225,7 +227,9 @@ BEGIN
     p.wilcom_level::TEXT,
     COALESCE(cs.status, s.status, 'AGUARDANDO_ENVIO')::TEXT,
     e.average_score,
-    COALESCE(s.submitted_at, u.created_at)
+    COALESCE(s.submitted_at, u.created_at),
+    c.title::TEXT,
+    (s.id IS NOT NULL)
   FROM auth.users u
   LEFT JOIN public.candidate_profiles p ON p.user_id = u.id
   LEFT JOIN LATERAL (
@@ -236,6 +240,7 @@ BEGIN
     LIMIT 1
   ) s ON TRUE
   LEFT JOIN public.evaluations e ON e.submission_id = s.id
+  LEFT JOIN public.challenges c ON c.id = s.challenge_id
   LEFT JOIN public.candidate_statuses cs ON cs.candidate_id = u.id
   WHERE COALESCE(u.raw_app_meta_data ->> 'role', 'CANDIDATE') <> 'ADMIN'
   ORDER BY COALESCE(s.submitted_at, u.created_at) DESC;
