@@ -47,6 +47,13 @@
 .referencia-preview figure{margin:0;display:grid;gap:8px}
 .referencia-preview img{display:block;width:100%;max-height:360px;object-fit:contain;background:#fff;border:1px solid #e4e8ee;border-radius:7px}
 .referencia-preview figcaption{color:#7d8998;font-size:10px}
+.desafios-selecao{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:-10px 0 30px}
+.desafio-opcao{display:flex;align-items:center;gap:12px;text-align:left;background:#fff;border:1px solid var(--line);border-radius:10px;padding:15px;color:#64758b;transition:.15s;box-shadow:var(--shadow)}
+.desafio-opcao:hover,.desafio-opcao.selecionado{border-color:#9bb9d8;background:#f4f8fd;color:var(--navy)}
+.desafio-opcao>span:nth-child(2){flex:1;min-width:0}.desafio-opcao strong,.desafio-opcao small{display:block}.desafio-opcao strong{font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.desafio-opcao small{font-size:10px;color:#95a1af;margin-top:5px}.desafio-opcao-numero{font:600 21px 'Playfair Display';color:var(--orange)}
+.desafio-selecionado-cabecalho{margin-top:6px}
+@media(max-width:900px){.desafios-selecao{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.desafios-selecao{grid-template-columns:1fr}.desafio-selecionado-cabecalho{margin-top:25px}}
 .contas-demo{display:none!important}
 /* A troca para o painel administrativo depende exclusivamente da role autenticada. */
 .alternar-admin{display:none!important}

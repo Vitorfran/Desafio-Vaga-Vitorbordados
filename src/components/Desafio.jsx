@@ -1,4 +1,4 @@
-// Tela do candidato: apresenta o briefing, arquivos de referência e envio do resultado.
+// Tela do candidato: permite escolher um desafio publicado e enviar a entrega correspondente.
 import { useEffect, useState } from 'react'
 import { ArrowRight, Check, Clock3, Download, FileArchive, FileText, UploadCloud } from 'lucide-react'
 import { supabase } from '../lib/supabase.js'
@@ -6,20 +6,15 @@ import { supabase } from '../lib/supabase.js'
 function dataExibicao(valor) { return valor ? new Date(valor).toLocaleString('pt-BR') : '—' }
 
 export default function Desafio() {
-  const [dados, setDados] = useState({ desafio: null, referencias: [], previews: [], submissao: null, arquivos: [], carregando: true })
+  const [dados, setDados] = useState({ desafios: [], desafio: null, referencias: [], previews: [], submissao: null, arquivos: [], carregando: true })
   const [arquivo, setArquivo] = useState(null)
   const [mensagem, setMensagem] = useState('')
   const [enviando, setEnviando] = useState(false)
 
-  async function carregar() {
-    if (!supabase) { setDados(atual => ({ ...atual, carregando: false })); return }
-    const { data: sessao } = await supabase.auth.getUser()
-    if (!sessao.user) { setDados(atual => ({ ...atual, carregando: false })); return }
-    const { data: desafio } = await supabase.from('challenges').select('*').eq('status', 'PUBLISHED').order('created_at', { ascending: false }).limit(1).maybeSingle()
-    if (!desafio) { setDados({ desafio: null, referencias: [], previews: [], submissao: null, arquivos: [], carregando: false }); return }
+  async function carregarDesafio(desafio, usuario, desafios = dados.desafios) {
     const [{ data: referencias }, { data: submissao }] = await Promise.all([
       supabase.from('challenge_files').select('*').eq('challenge_id', desafio.id).order('created_at'),
-      supabase.from('submissions').select('*').eq('candidate_id', sessao.user.id).eq('challenge_id', desafio.id).order('submitted_at', { ascending: false }).limit(1).maybeSingle(),
+      supabase.from('submissions').select('*').eq('candidate_id', usuario.id).eq('challenge_id', desafio.id).order('submitted_at', { ascending: false }).limit(1).maybeSingle(),
     ])
     const imagens = (referencias || []).filter(item => item.mime_type?.startsWith('image/') || /\.(png|jpe?g|webp)$/i.test(item.original_name || ''))
     const previews = (await Promise.all(imagens.map(async item => {
@@ -27,11 +22,31 @@ export default function Desafio() {
       return assinatura.data?.signedUrl ? { ...item, url: assinatura.data.signedUrl } : null
     }))).filter(Boolean)
     let arquivos = []
-    if (submissao) { const resposta = await supabase.from('submission_files').select('*').eq('submission_id', submissao.id); arquivos = resposta.data || [] }
-    setDados({ desafio, referencias: referencias || [], previews, submissao, arquivos, carregando: false })
+    if (submissao) {
+      const resposta = await supabase.from('submission_files').select('*').eq('submission_id', submissao.id)
+      arquivos = resposta.data || []
+    }
+    setArquivo(null)
+    setDados({ desafios, desafio, referencias: referencias || [], previews, submissao, arquivos, carregando: false })
+  }
+
+  async function carregar() {
+    if (!supabase) { setDados(atual => ({ ...atual, carregando: false })); return }
+    const { data: sessao } = await supabase.auth.getUser()
+    if (!sessao.user) { setDados(atual => ({ ...atual, carregando: false })); return }
+    const { data: desafios } = await supabase.from('challenges').select('*').eq('status', 'PUBLISHED').order('created_at', { ascending: false })
+    if (!desafios?.length) { setDados({ desafios: [], desafio: null, referencias: [], previews: [], submissao: null, arquivos: [], carregando: false }); return }
+    await carregarDesafio(desafios[0], sessao.user, desafios)
   }
 
   useEffect(() => { carregar() }, [])
+
+  async function selecionarDesafio(desafio) {
+    const { data: sessao } = await supabase.auth.getUser()
+    if (!sessao.user) return
+    setMensagem('')
+    await carregarDesafio(desafio, sessao.user)
+  }
 
   async function baixarReferencia(item) {
     const { data, error } = await supabase.storage.from('desafio-arquivos').createSignedUrl(item.storage_key, 300)
@@ -50,11 +65,13 @@ export default function Desafio() {
     const upload = await supabase.storage.from('desafio-arquivos').upload(caminho, arquivo)
     if (upload.error) { setMensagem(upload.error.message); setEnviando(false); return }
     const registro = await supabase.from('submission_files').insert({ submission_id: submissao.id, storage_key: caminho, original_name: arquivo.name, mime_type: arquivo.type || 'application/octet-stream', size_bytes: arquivo.size, is_preview: arquivo.type.startsWith('image/') })
-    if (registro.error) setMensagem(registro.error.message); else { setMensagem('Resultado enviado com sucesso.'); setArquivo(null); await carregar() }
+    if (registro.error) setMensagem(registro.error.message)
+    else { setMensagem('Resultado enviado com sucesso.'); await carregar() }
     setEnviando(false)
   }
 
   if (dados.carregando) return <section className="card estado-vazio" aria-busy="true"><Clock3 size={30} /><h2>Aguarde...</h2></section>
-  if (!dados.desafio) return <section className="card estado-vazio"><FileText size={30} /><h2>Nenhum desafio publicado</h2><p>A equipe ainda não publicou um desafio.</p></section>
-  return <><div className="pagina-cabecalho"><div><p className="eyebrow">DESAFIO ATUAL</p><h2>{dados.desafio.title}</h2><p className="texto-suave">Confira o briefing e envie seu resultado.</p></div>{dados.desafio.closes_at && <div className="prazo-destaque"><Clock3 size={18} /><span>Encerra em<br /><strong>{dataExibicao(dados.desafio.closes_at)}</strong></span></div>}</div><div className="grid-desafio"><main className="card briefing"><div className="briefing-capa"><div className="selo">V</div><div><span>BRIEFING OFICIAL</span><strong>{dados.desafio.title}</strong></div></div><h3>O desafio</h3><p>{dados.desafio.description}</p>{dados.desafio.requirements?.length > 0 && <><h3>Requisitos</h3><ol>{dados.desafio.requirements.map((item, indice) => <li key={indice}>{item}</li>)}</ol></>}{dados.previews.length > 0 && <div className="referencia-preview"><strong>Prévia visual do desafio</strong>{dados.previews.map(item => <figure key={item.id}><img src={item.url} alt={`Prévia: ${item.original_name}`} /><figcaption>{item.original_name}</figcaption></figure>)}</div>}<div className="criterios"><strong>Arquivos de referência</strong>{dados.referencias.length ? dados.referencias.map(item => <button className="link-button" key={item.id} onClick={() => baixarReferencia(item)}><FileArchive size={15} /> {item.original_name} <Download size={15} /></button>) : <span>Nenhum arquivo anexado</span>}</div></main><aside className="coluna-envio"><section className="card envio-card"><div className="titulo-com-acao"><div><p className="eyebrow">SUA ENTREGA</p><h3>{dados.submissao ? 'Resultado enviado' : 'Envie seu resultado'}</h3></div><span className="status status-enviado">{dados.submissao ? 'Enviado' : 'Pendente'}</span></div>{dados.submissao ? <>{dados.arquivos.map(item => <div className="arquivo-enviado" key={item.id}><FileArchive size={19} /><div><strong>{item.original_name}</strong><small>{Math.round(item.size_bytes / 1024)} KB</small></div></div>)}<div className="envio-confirmado"><Check size={15} /> Sua entrega foi registrada</div></> : <form onSubmit={enviar}><label className="dropzone"><UploadCloud size={28} /><strong>{arquivo ? arquivo.name : 'Selecione o arquivo do resultado'}</strong><small>Formatos aceitos: {dados.desafio.accepted_extensions?.join(', ') || 'definidos pela equipe'}</small><input type="file" onChange={event => setArquivo(event.target.files?.[0] || null)} /></label><button className="botao-principal largura-total" disabled={!arquivo || enviando}>{enviando ? 'Enviando...' : 'Enviar resultado'} <ArrowRight size={17} /></button></form>}{mensagem && <div className="auth-mensagem">{mensagem}</div>}</section></aside></div></>
+  if (!dados.desafios.length) return <section className="card estado-vazio"><FileText size={30} /><h2>Nenhum desafio publicado</h2><p>A equipe ainda não publicou um desafio.</p></section>
+  const desafio = dados.desafio
+  return <><div className="pagina-cabecalho"><div><p className="eyebrow">MEUS DESAFIOS</p><h2>Escolha o desafio que deseja fazer</h2><p className="texto-suave">Você pode selecionar qualquer um dos desafios publicados pela equipe.</p></div></div><section className="desafios-selecao">{dados.desafios.map((item, indice) => <button key={item.id} className={`desafio-opcao ${item.id === desafio.id ? 'selecionado' : ''}`} onClick={() => selecionarDesafio(item)}><span className="desafio-opcao-numero">{String(indice + 1).padStart(2, '0')}</span><span><strong>{item.title}</strong><small>{item.closes_at ? `Encerra em ${dataExibicao(item.closes_at)}` : 'Prazo não definido'}</small></span>{item.id === desafio.id && <Check size={17} />}</button>)}</section><div className="pagina-cabecalho desafio-selecionado-cabecalho"><div><p className="eyebrow">DESAFIO SELECIONADO</p><h2>{desafio.title}</h2><p className="texto-suave">Confira o briefing e envie seu resultado.</p></div>{desafio.closes_at && <div className="prazo-destaque"><Clock3 size={18} /><span>Encerra em<br /><strong>{dataExibicao(desafio.closes_at)}</strong></span></div>}</div><div className="grid-desafio"><main className="card briefing"><div className="briefing-capa"><div className="selo">V</div><div><span>BRIEFING OFICIAL</span><strong>{desafio.title}</strong></div></div><h3>O desafio</h3><p>{desafio.description}</p>{desafio.requirements?.length > 0 && <><h3>Requisitos</h3><ol>{desafio.requirements.map((item, indice) => <li key={indice}>{item}</li>)}</ol></>}{dados.previews.length > 0 && <div className="referencia-preview"><strong>Prévia visual do desafio</strong>{dados.previews.map(item => <figure key={item.id}><img src={item.url} alt={`Prévia: ${item.original_name}`} /><figcaption>{item.original_name}</figcaption></figure>)}</div>}<div className="criterios"><strong>Arquivos de referência</strong>{dados.referencias.length ? dados.referencias.map(item => <button className="link-button" key={item.id} onClick={() => baixarReferencia(item)}><FileArchive size={15} /> {item.original_name} <Download size={15} /></button>) : <span>Nenhum arquivo anexado</span>}</div></main><aside className="coluna-envio"><section className="card envio-card"><div className="titulo-com-acao"><div><p className="eyebrow">SUA ENTREGA</p><h3>{dados.submissao ? 'Resultado enviado' : 'Envie seu resultado'}</h3></div><span className={dados.submissao ? 'status status-enviado' : 'status status-aguardando-envio'}>{dados.submissao ? 'Enviado' : 'Pendente'}</span></div>{dados.submissao ? <>{dados.arquivos.map(item => <div className="arquivo-enviado" key={item.id}><FileArchive size={19} /><div><strong>{item.original_name}</strong><small>{Math.round(item.size_bytes / 1024)} KB</small></div></div>)}<div className="envio-confirmado"><Check size={15} /> Sua entrega foi registrada</div></> : <form onSubmit={enviar}><label className="dropzone"><UploadCloud size={28} /><strong>{arquivo ? arquivo.name : 'Selecione o arquivo do resultado'}</strong><small>Formatos aceitos: {desafio.accepted_extensions?.join(', ') || 'definidos pela equipe'}</small><input type="file" onChange={event => setArquivo(event.target.files?.[0] || null)} /></label><button className="botao-principal largura-total" disabled={!arquivo || enviando}>{enviando ? 'Enviando...' : 'Enviar resultado'} <ArrowRight size={17} /></button></form>}{mensagem && <div className="auth-mensagem">{mensagem}</div>}</section></aside></div></>
 }
