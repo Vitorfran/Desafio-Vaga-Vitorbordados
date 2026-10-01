@@ -2,3 +2,19 @@ node_modules/
 dist/
 .env
 .env.local
+
+# Artefatos locais de testes, empacotamento e diagnóstico — não fazem parte do portal.
+__pycache__/
+build-*/
+build-tmp*/
+diagnostico-tk/
+merged-app/
+release/
+release-*/
+scratch/
+
+# Arquivos temporários gerados durante a triagem do aplicativo desktop.
+awaiting_simples.py
+VITOR-TRIAGEM-LEIA-ME.txt
+VITORDIGITIZING6.PY
+VITORDIGITIZING6-integrado.zip

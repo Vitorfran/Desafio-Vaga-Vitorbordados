@@ -7,6 +7,13 @@ function Logo() {
   return <div className="marca"><img src="/logo.png" alt="Vitor Matrizes de Bordado" /><span>DESAFIO <small>2026</small></span></div>
 }
 
+// O Supabase usa este endereço para voltar depois da confirmação/recuperação.
+// Em produção, usar a origem atual evita enviar links apontando para localhost.
+function urlDeRetorno() {
+  if (typeof window === 'undefined') return undefined
+  return `${window.location.origin}${window.location.pathname.startsWith('/admin') ? '/admin/login' : '/'}`
+}
+
 export default function Login({ onLogin, portalAdmin = false }) {
   const [modo, setModo] = useState('login')
   const [mensagem, setMensagem] = useState('')
@@ -33,7 +40,7 @@ export default function Login({ onLogin, portalAdmin = false }) {
     setTipoMensagem('')
     try {
       if (modo === 'register') {
-        const { error } = await supabase.auth.signUp({ email: emailNormalizado, password: senha, options: { data: { nome: nomeDigitado.trim(), role: 'CANDIDATE' } } })
+        const { error } = await supabase.auth.signUp({ email: emailNormalizado, password: senha, options: { emailRedirectTo: urlDeRetorno(), data: { nome: nomeDigitado.trim(), role: 'CANDIDATE' } } })
         if (error) throw error
         setMensagem('Cadastro criado. Verifique seu e-mail para confirmar a conta.')
         setTipoMensagem('sucesso')
@@ -41,7 +48,7 @@ export default function Login({ onLogin, portalAdmin = false }) {
         return
       }
       if (modo === 'forgot') {
-        const { error } = await supabase.auth.resetPasswordForEmail(emailNormalizado)
+        const { error } = await supabase.auth.resetPasswordForEmail(emailNormalizado, { redirectTo: urlDeRetorno() })
         if (error) throw error
         setMensagem('Se o e-mail existir, enviaremos as instruções de recuperação.')
         setTipoMensagem('sucesso')
