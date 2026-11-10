@@ -133,6 +133,42 @@ function Sidebar({ tela, mudarTela, mobileAberto, fechar, sair }) {
 
 function Topbar({ titulo, abrirMenu, admin = false }) { return <header className="topbar"><button className="botao-icon menu-mobile" onClick={abrirMenu}><Menu size={21} /></button><div><p className="eyebrow">{admin ? 'ÁREA ADMINISTRATIVA' : 'PROCESSO SELETIVO VITOR BORDADOS'}</p><h1>{titulo}</h1></div><div className="topbar-actions"><button className="botao-icon"><Bell size={19} /><i /></button><div className="avatar avatar-laranja">EU</div></div></header> }
 
-function App() { const [usuario, setUsuario] = useState(null); const [tela, setTela] = useState('visao-geral'); const [admin, setAdmin] = useState(false); const [mobileAberto, setMobileAberto] = useState(false); const titulos = { 'visao-geral': 'Meu espaço', 'meu-desafio': 'Meu desafio', 'meu-perfil': 'Meu perfil', 'quem-somos': 'Quem somos' }; const portalAdmin = window.location.pathname.startsWith('/admin'); const entrar = (dados) => { setUsuario(dados); setAdmin(dados.role === 'ADMIN') }; const sair = async () => { if (supabase) await supabase.auth.signOut(); setUsuario(null); setAdmin(false); setTela('visao-geral'); setMobileAberto(false) }; if (!usuario) return <Login portalAdmin={portalAdmin} onLogin={entrar} />; if (portalAdmin && usuario.role !== 'ADMIN') return <Login portalAdmin onLogin={entrar} />; return <><div className="app-shell">{!admin && <Sidebar tela={tela} mudarTela={setTela} mobileAberto={mobileAberto} fechar={() => setMobileAberto(false)} sair={sair} />}<main className={admin ? 'conteudo admin-conteudo' : 'conteudo'}><Topbar titulo={admin ? 'Recrutamento' : titulos[tela]} abrirMenu={() => setMobileAberto(true)} admin={admin} />{admin ? <AdminReal /> : <div className="conteudo-interno">{tela === 'visao-geral' && <DashboardReal mudarTela={setTela} />}{tela === 'meu-desafio' && <DesafioReal />}{tela === 'meu-perfil' && <Perfil />}{tela === 'quem-somos' && <QuemSomos />}</div>}<button className="alternar-admin" onClick={() => { setAdmin(!admin); setMobileAberto(false) }}>{admin ? 'Voltar para candidato' : 'Prévia do administrador'} <ArrowRight size={15} /></button></main></div></> }
+function dadosDoUsuario(user) {
+  if (!user) return null
+  const role = user.app_metadata?.role || user.user_metadata?.role || 'CANDIDATE'
+  return { role, admin: role === 'ADMIN', nome: user.user_metadata?.nome || user.email }
+}
+
+function App() {
+  const [usuario, setUsuario] = useState(null)
+  const [tela, setTela] = useState('visao-geral')
+  const [admin, setAdmin] = useState(false)
+  const [mobileAberto, setMobileAberto] = useState(false)
+  const [carregandoSessao, setCarregandoSessao] = useState(Boolean(supabase))
+  const titulos = { 'visao-geral': 'Meu espaço', 'meu-desafio': 'Meu desafio', 'meu-perfil': 'Meu perfil', 'quem-somos': 'Quem somos' }
+  const portalAdmin = window.location.pathname.startsWith('/admin')
+  const entrar = (dados) => { setUsuario(dados); setAdmin(dados.role === 'ADMIN') }
+  const sair = async () => { if (supabase) await supabase.auth.signOut(); setUsuario(null); setAdmin(false); setTela('visao-geral'); setMobileAberto(false) }
+
+  useEffect(() => {
+    if (!supabase) return undefined
+    let ativo = true
+    const aplicarSessao = (session) => {
+      if (!ativo) return
+      const dados = dadosDoUsuario(session?.user)
+      setUsuario(dados)
+      setAdmin(Boolean(dados?.admin))
+      setCarregandoSessao(false)
+    }
+    supabase.auth.getSession().then(({ data }) => aplicarSessao(data.session))
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => aplicarSessao(session))
+    return () => { ativo = false; listener.subscription.unsubscribe() }
+  }, [])
+
+  if (carregandoSessao) return <section className="card estado-vazio" aria-busy="true"><Clock3 size={30} /><h2>Aguarde...</h2></section>
+  if (!usuario) return <Login portalAdmin={portalAdmin} onLogin={entrar} />
+  if (portalAdmin && usuario.role !== 'ADMIN') return <Login portalAdmin onLogin={entrar} />
+  return <><div className="app-shell">{!admin && <Sidebar tela={tela} mudarTela={setTela} mobileAberto={mobileAberto} fechar={() => setMobileAberto(false)} sair={sair} />}<main className={admin ? 'conteudo admin-conteudo' : 'conteudo'}><Topbar titulo={admin ? 'Recrutamento' : titulos[tela]} abrirMenu={() => setMobileAberto(true)} admin={admin} />{admin ? <AdminReal /> : <div className="conteudo-interno">{tela === 'visao-geral' && <DashboardReal mudarTela={setTela} />}{tela === 'meu-desafio' && <DesafioReal />}{tela === 'meu-perfil' && <Perfil />}{tela === 'quem-somos' && <QuemSomos />}</div>}<button className="alternar-admin" onClick={() => { setAdmin(!admin); setMobileAberto(false) }}>{admin ? 'Voltar para candidato' : 'Prévia do administrador'} <ArrowRight size={15} /></button></main></div></>
+}
 
 createRoot(document.getElementById('root')).render(<StrictMode><App /></StrictMode>)
